@@ -1,0 +1,46 @@
+@import "../../node_modules/bootstrap//scss/bootstrap.scss";
+@import "bootstrap/dist/css/bootstrap.min.css";
+
+@import url("./component/_index.scss");
+@import url("./page/_index.scss");
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+.pre-login {
+  height: 100%;
+}
+.post-login-body {
+  margin: 20px auto;
+}
+
+.profile-img {
+  border-radius: 100% !important;
+  width: 50px;
+  margin-right: 12px;
+  height: 50px;
+}
+.employee-grid-container {
+  height: 420px;
+  padding-bottom: 60px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+table td {
+  vertical-align: middle;
+}
+.badge {
+  padding: 10px !important;
+}
+.post-login-body {
+  padding-bottom: 150px;
+}
+.spinner-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

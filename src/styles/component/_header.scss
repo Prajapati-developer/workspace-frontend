@@ -1,0 +1,23 @@
+.header {
+  .header-container {
+    // @extend .px-4;
+    // @extend .py-4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid;
+
+    a {
+      color: black;
+      text-align: center;
+      padding: 12px;
+      text-decoration: none;
+      font-size: 18px;
+      text-transform: capitalize;
+      &:hover {
+        background-color: #ddd;
+        color: black;
+      }
+    }
+  }
+}
