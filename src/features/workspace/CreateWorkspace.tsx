@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Form, Spinner } from "react-bootstrap";
+import { Card } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
@@ -8,10 +8,23 @@ import {
   workspaceApi,
 } from "../../store/api/workspaceApi";
 import { successToast } from "../../common/utill/tostUtill";
-import ErrorText from "../../common/components/ErrorText";
 import { ToastContainer } from "react-toastify";
 import { IWorkspace } from "../../model/workspaceModel";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import Loader from "../../common/components/Loader";
+import {
+  Button,
+  CardMedia,
+  CircularProgress,
+  Container,
+  FormControlLabel,
+  FormGroup,
+  Grid,
+  IconButton,
+  Switch,
+  TextField,
+  Typography,
+} from "@mui/material";
 const initialState: IWorkspace = {
   logo: "",
   name: "",
@@ -52,6 +65,9 @@ const CreateWorkspace: React.FC = () => {
 
     if (name == "status") {
       value = e.target.checked ? "A" : "D";
+    }
+    if (name == "logo") {
+      setImageError(false);
     }
 
     setFormData({ ...formData, [name]: value });
@@ -105,180 +121,192 @@ const CreateWorkspace: React.FC = () => {
       console.error("something went wrong!", error);
     }
   };
-
+  const [imageError, setImageError] = useState(false);
   if (isInitialDataLoading) {
     return <Loader />;
   }
   return (
     <>
-      <div>
-        <h1 className="text-center mb-6">
-          {id ? "Edit Workspace" : "Create Workspace"}
-        </h1>
-        <Button onClick={() => navigate("/workspace")}>Back</Button>
-      </div>
-
-      <Form onSubmit={handleSubmit((data) => onSubmit(data))} className="w-50">
-        <Form.Group controlId="formName" className="my-4">
-          <Form.Label>Name</Form.Label>
-          <Form.Control
-            type="text"
-            value={formData.name}
-            placeholder="Enter Name"
-            {...register("name", {
-              required: " Name is required",
-              // pattern: {
-              //   value: /^[A-Z0-9 ]$/i,
-              //   message: "Invalid Name",
-              // },
-            })}
-            onChange={handleChange}
-            isInvalid={!!errors.name}
-          />
-          {errors.name && (
-            <Form.Control.Feedback type="invalid">
-              <ErrorText>{errors.name.message}</ErrorText>
-            </Form.Control.Feedback>
-          )}
-        </Form.Group>
-
-        <Form.Group controlId="formPassword" className="my-4">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            value={formData.password}
-            placeholder="Password"
-            {...register("password", {
-              required: "Password is required",
-            })}
-            isInvalid={!!errors.password}
-            onChange={handleChange}
-          />
-
-          {errors.password && (
-            <Form.Control.Feedback type="invalid">
-              <ErrorText>{errors.password.message}</ErrorText>
-            </Form.Control.Feedback>
-          )}
-        </Form.Group>
-        <Form.Group controlId="formEmail" className="my-4">
-          <Form.Label>Email</Form.Label>
-          <Form.Control
-            type="email"
-            placeholder="Email"
-            {...register("email", {
-              required: "Email is required",
-            })}
-            value={formData.email}
-            isInvalid={!!errors.email}
-            onChange={handleChange}
-          />
-
-          {errors.email && (
-            <Form.Control.Feedback type="invalid">
-              <ErrorText>{errors.email.message}</ErrorText>
-            </Form.Control.Feedback>
-          )}
-        </Form.Group>
-
-        <Form.Group controlId="formMobile" className="my-4">
-          <Form.Label>Mobile</Form.Label>
-          <Form.Control
-            type="tel"
-            placeholder="Mobile"
-            {...register("mobile", {
-              required: "Mobile is required",
-            })}
-            value={formData.mobile}
-            isInvalid={!!errors.mobile}
-            onChange={handleChange}
-          />
-
-          {errors.mobile && (
-            <Form.Control.Feedback type="invalid">
-              <ErrorText>{errors.mobile.message}</ErrorText>
-            </Form.Control.Feedback>
-          )}
-        </Form.Group>
-
-        <Form.Group controlId="formLogo" className="my-4">
-          <Form.Label>Logo</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Logo IMG Url"
-            {...register("logo", {
-              required: "Logo  URL is required",
-              // pattern: {
-              //   value: /^(http|https):\/\/[^ "]+$/,
-              //   message: "Enter a valid URL",
-              // },
-            })}
-            onChange={handleChange}
-            value={formData.logo}
-            isInvalid={!!errors.logo}
-          />
-
-          {errors.logo && (
-            <Form.Control.Feedback type="invalid">
-              <ErrorText>{errors.logo.message}</ErrorText>
-            </Form.Control.Feedback>
-          )}
-        </Form.Group>
-        <Form.Group controlId="formAddress" className="my-4">
-          <Form.Label>Address</Form.Label>
-          <Form.Control
-            as="textarea"
-            rows={3}
-            placeholder="Address"
-            {...register("address", {
-              required: "Address is required",
-            })}
-            value={formData.address}
-            isInvalid={!!errors.address}
-            onChange={handleChange}
-          />
-
-          {errors.address && (
-            <Form.Control.Feedback type="invalid">
-              <ErrorText>{errors.address.message}</ErrorText>
-            </Form.Control.Feedback>
-          )}
-        </Form.Group>
-        <Form.Group controlId="formAddress" className="my-4">
-          <Form.Label>Status</Form.Label>
-
-          <Form.Check
-            type="switch"
-            name="status"
-            checked={formData.status == "A" ? true : false}
-            onChange={handleChange}
-          />
-
-          {errors.address && (
-            <Form.Control.Feedback type="invalid">
-              <ErrorText>{errors.address.message}</ErrorText>
-            </Form.Control.Feedback>
-          )}
-        </Form.Group>
-        {isUpdateQueryLoader || isAddQueryLoader ? (
-          <Button className="d-block m-auto" variant="primary" disabled>
-            <Spinner
-              as="span"
-              animation="grow"
-              size="sm"
-              role="status"
-              aria-hidden="true"
-            />
-            {id
-              ? "Updating  Workspace..........."
-              : "Creating Workspace ........."}
-          </Button>
-        ) : (
-          <Button variant="primary" className="d-block m-auto" type="submit">
-            {id ? "Update Workspace" : "Add Workspace"}
-          </Button>
-        )}
-      </Form>
+      <Container sx={{ paddingTop: 10, paddingBottom: 20 }}>
+        <Grid container spacing={2} justifyContent="center">
+          <Grid item lg={3} md={12}>
+            <div className="logo-img">
+              <Card>
+                <CardMedia
+                  component="img"
+                  alt={formData.name}
+                  height="200"
+                  image={
+                    formData.logo
+                      ? !imageError
+                        ? formData.logo
+                        : "../../../src/assets/defaultCompanyLogo.png"
+                      : "../../../src/assets/defaultCompanyLogo.png"
+                  }
+                  onError={() => setImageError(true)}
+                />
+              </Card>
+            </div>
+          </Grid>
+          <Grid item lg={9} md={12}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    {" "}
+                    <Typography
+                      variant="h4"
+                      align="center"
+                      style={{ margin: "20px 0 40px" }}
+                    >
+                      {id
+                        ? `Update ${formData.name} Workspace`
+                        : "Add Workspace"}
+                    </Typography>
+                    <Button
+                      variant="text"
+                      onClick={() => navigate("/workspace")}
+                    >
+                      <IconButton>
+                        <ArrowBackIosIcon />
+                      </IconButton>
+                      Back
+                    </Button>
+                  </div>
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    label="Name"
+                    {...register("name", {
+                      required: " Name is required",
+                    })}
+                    error={!!errors.name}
+                    helperText={errors.name ? errors.name.message : ""}
+                    className="variant-1"
+                    value={formData.name}
+                    onChange={handleChange}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    type="password"
+                    label="Password"
+                    error={!!errors.password}
+                    helperText={errors.password ? errors.password.message : ""}
+                    className="variant-1"
+                    value={formData.password}
+                    {...register("password", {
+                      required: "Password is required",
+                    })}
+                    onChange={handleChange}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    type="email"
+                    fullWidth
+                    label="Email"
+                    error={!!errors.email}
+                    helperText={errors.email ? errors.email.message : ""}
+                    className="variant-1"
+                    {...register("email", {
+                      required: "Email is required",
+                    })}
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    label="Phone Number"
+                    error={!!errors.mobile}
+                    helperText={errors.mobile ? errors.mobile.message : ""}
+                    className="variant-1"
+                    type="tel"
+                    {...register("mobile", {
+                      required: "Phone Number is required",
+                    })}
+                    value={formData.mobile}
+                    onChange={handleChange}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Logo IMG URL"
+                    error={!!errors.logo}
+                    helperText={errors.logo ? errors.logo.message : ""}
+                    className="variant-1"
+                    placeholder="Logo IMG Url"
+                    {...register("logo", {
+                      required: "Logo URL is required",
+                    })}
+                    onChange={handleChange}
+                    value={formData.logo}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Address"
+                    error={!!errors.address}
+                    helperText={errors.address ? errors.address.message : ""}
+                    className="variant-1"
+                    placeholder="Address"
+                    {...register("address", {
+                      required: "Address is required",
+                    })}
+                    value={formData.address}
+                    onChange={handleChange}
+                    multiline
+                    minRows={3}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.status == "A" ? true : false}
+                          onChange={handleChange}
+                          name="status"
+                        />
+                      }
+                      label={`status ${
+                        formData.status == "A" ? "Activated" : "Deactivated"
+                      }`}
+                    />
+                  </FormGroup>
+                  {/* <Switch
+                    onChange={handleChange}
+                    // label="Status"
+                    // defaultChecked
+                  /> */}
+                </Grid>
+                <Grid item xs={12} sx={{ textAlign: "center" }}>
+                  {isUpdateQueryLoader || isAddQueryLoader ? (
+                    <Button disabled>
+                      {id
+                        ? "Updating  Workspace..........."
+                        : "Creating Workspace ........."}
+                      <CircularProgress size={12} />
+                    </Button>
+                  ) : (
+                    <Button type="submit" variant="contained" color="primary">
+                      {id ? "Update Workspace" : "Add Workspace"}
+                    </Button>
+                  )}
+                </Grid>
+              </Grid>
+            </form>
+          </Grid>
+        </Grid>
+      </Container>
       <ToastContainer />
     </>
   );

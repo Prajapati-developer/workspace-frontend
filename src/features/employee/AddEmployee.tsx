@@ -8,7 +8,7 @@ import {
   useAddEmployeeMutation,
   useLazyGetEmployeeByIdQuery,
 } from "../../store/api/employeeApi";
-import { Button, Form, Spinner } from "react-bootstrap";
+import { Form, Spinner } from "react-bootstrap";
 import DepartmentSelectDropdown from "./DepartmentSelectDropdown";
 import { errorToast, successToast } from "../../common/utill/tostUtill";
 import { IUser } from "../../model/userModel";
@@ -17,6 +17,21 @@ import { ToastContainer } from "react-toastify";
 import { getAuthDetails } from "../../store/slice/AuthSlice";
 import { ROLE } from "../../common/constants";
 import Loader from "../../common/components/Loader";
+import {
+  Card,
+  CardMedia,
+  CircularProgress,
+  Container,
+  FormControlLabel,
+  FormGroup,
+  Grid,
+  Switch,
+  TextField,
+  Typography,
+  Button,
+  FormHelperText,
+} from "@mui/material";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 
 const AddEmployee = () => {
   const initialData: IUser = {
@@ -34,7 +49,7 @@ const AddEmployee = () => {
   };
 
   const { id } = useParams();
-
+  const [imageError, setImageError] = useState(false);
   const [getEmployeeDetail, { data, isLoading: isEmployeeDetailLoading }] =
     useLazyGetEmployeeByIdQuery();
 
@@ -61,8 +76,17 @@ const AddEmployee = () => {
     }
   }, [id]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { name, value } = e.target;
+  const handleChange = (
+    e: any
+    // | React.ChangeEvent<HTMLInputElement>
+    // | React.ChangeEvent<HTMLSelectElement>
+    // | ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name } = e.target;
+    let { value } = e.target;
+    if (name == "status") {
+      value = e.target.checked ? "A" : "D";
+    }
     if (name == "department" && value == "") {
       setFormData({ ...formData, department: 0 });
       return;
@@ -84,7 +108,11 @@ const AddEmployee = () => {
   }
 
   const onSubmit = async (data: IUser) => {
-    data = { ...data, company: workspaceId, role: ROLE.EMPLOYEE };
+    data = {
+      ...data,
+      company: workspaceId,
+      role: formData.role || ROLE.EMPLOYEE,
+    };
 
     if (id) {
       try {
@@ -115,11 +143,204 @@ const AddEmployee = () => {
 
   return (
     <>
-      {id && (
+      <Container sx={{ paddingTop: 10, paddingBottom: 20 }}>
+        <Grid container spacing={2} justifyContent="center">
+          <Grid item lg={3} md={12}>
+            {" "}
+            <div className="logo-img">
+              <Card>
+                <CardMedia
+                  component="img"
+                  alt={formData.profilePicture}
+                  height="200"
+                  image={
+                    formData.profilePicture
+                      ? !imageError
+                        ? formData.profilePicture
+                        : "../../../src/assets/icon-user-default.png"
+                      : "../../../src/assets/icon-user-default.png"
+                  }
+                  // src={formData.profilePicture}
+                  onError={() => setImageError(true)}
+                />
+              </Card>
+            </div>
+          </Grid>
+          <Grid item lg={9} md={12}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <Grid container spacing={2}>
+                {" "}
+                <Grid item xs={12}>
+                  <div style={{ display: "flex", justifyContent: "center" }}>
+                    {" "}
+                    <Typography
+                      variant="h4"
+                      align="center"
+                      style={{ margin: "20px 0 40px" }}
+                    >
+                      {id
+                        ? `Update ${formData.name} Employee Details`
+                        : "Add Employee"}
+                    </Typography>
+                    {/* <Button variant="text" onClick={() => navigate("/")}>
+                      <ArrowBackIosIcon />
+                      Back
+                    </Button> */}
+                  </div>
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    label="Name"
+                    {...register("name", {
+                      required: " Name is required",
+                    })}
+                    error={!!errors.name}
+                    helperText={errors.name ? errors.name.message : ""}
+                    className="variant-1"
+                    value={formData.name}
+                    onChange={handleChange}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    type="password"
+                    label="Password"
+                    error={!!errors.password}
+                    helperText={errors.password ? errors.password.message : ""}
+                    className="variant-1"
+                    value={formData.password}
+                    {...register("password", {
+                      required: "Password is required",
+                    })}
+                    onChange={handleChange}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    type="email"
+                    fullWidth
+                    label="Email"
+                    error={!!errors.email}
+                    helperText={errors.email ? errors.email.message : ""}
+                    className="variant-1"
+                    {...register("email", {
+                      required: "Email is required",
+                    })}
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    label="Phone Number"
+                    error={!!errors.mobile}
+                    helperText={errors.mobile ? errors.mobile.message : ""}
+                    className="variant-1"
+                    type="tel"
+                    {...register("mobile", {
+                      required: "Phone Number is required",
+                    })}
+                    value={formData.mobile}
+                    onChange={handleChange}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    error={!!errors.dob}
+                    helperText={errors.dob ? errors.dob.message : ""}
+                    className="variant-1"
+                    value={
+                      formData.dob
+                        ? new Date(formData.dob).toISOString().split("T")[0]
+                        : formData.dob
+                    }
+                    {...register("dob", {
+                      required: "Date of Birth is required",
+                    })}
+                    onChange={handleChange}
+                  />
+                  <FormHelperText>Date Of Birth </FormHelperText>
+                </Grid>
+                <Grid item xs={6}>
+                  <DepartmentSelectDropdown
+                    name="department"
+                    errors={errors}
+                    onSelect={handleChange}
+                    selectedOption={formData.department}
+                    otherProps={{
+                      ...register("department", {
+                        required: "Department is required",
+                      }),
+                    }}
+                  ></DepartmentSelectDropdown>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Profile IMG URL"
+                    error={!!errors.profilePicture}
+                    helperText={
+                      errors.profilePicture ? errors.profilePicture.message : ""
+                    }
+                    className="variant-1"
+                    placeholder="Profile IMG Url"
+                    {...register("profilePicture", {
+                      required: "Profile Img URL is required",
+                    })}
+                    onChange={handleChange}
+                    value={formData.profilePicture}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.status == "A" ? true : false}
+                          onChange={handleChange}
+                          name="status"
+                        />
+                      }
+                      label={`status ${
+                        formData.status == "A" ? "Activated" : "Deactivated"
+                      }`}
+                    />
+                  </FormGroup>
+                  {/* <Switch
+                    onChange={handleChange}
+                    // label="Status"
+                    // defaultChecked
+                  /> */}
+                </Grid>
+                <Grid item xs={12} sx={{ textAlign: "center" }}>
+                  {isUpdateQueryLoader || isAddQueryLoader ? (
+                    <Button disabled>
+                      {id
+                        ? "Updating  Employee Details..........."
+                        : "Adding New Employee ........."}
+                      <CircularProgress size={12} />
+                    </Button>
+                  ) : (
+                    <Button type="submit" variant="contained" color="primary">
+                      {id ? "Update Employee Details" : "Add Employee"}
+                    </Button>
+                  )}
+                </Grid>
+              </Grid>
+            </form>
+          </Grid>
+        </Grid>
+      </Container>
+      {/* {id && (
         <Button onClick={() => navigate("/employee/add")}>Add Employee</Button>
-      )}
+      )} */}
 
-      <Form onSubmit={handleSubmit((data) => onSubmit(data))} className="w-50">
+      {/* <Form onSubmit={handleSubmit((data) => onSubmit(data))} className="w-50">
         <Form.Group controlId="formName" className="my-4">
           <Form.Label>Name</Form.Label>
           <Form.Control
@@ -257,7 +478,6 @@ const AddEmployee = () => {
               ...register("department", {
                 required: "Department is required",
               }),
-              isInvalid: !!errors.department,
             }}
           ></DepartmentSelectDropdown>
 
@@ -284,7 +504,7 @@ const AddEmployee = () => {
             {id ? "Update " : "Add"}
           </Button>
         )}
-      </Form>
+      </Form> */}
       <ToastContainer></ToastContainer>
     </>
   );

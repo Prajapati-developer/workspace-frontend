@@ -44,3 +44,9 @@ table td {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+.logo-img {
+  margin: 110px auto 0px;
+  @media screen and (max-width: 768px) {
+    margin: 0 auto 10px;
+  }
+}

@@ -9,21 +9,21 @@ import { useLazyGetWorkspaceDataByIdQuery } from "../../store/api/workspaceApi";
 const Header = () => {
   const { role, userId, workspaceId } = useSelector(getAuthDetails);
 
-  const [getInitialData, { data }] = useLazyGetWorkspaceDataByIdQuery();
+  const [getInitialData] = useLazyGetWorkspaceDataByIdQuery();
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (role === ROLE.ADMIN && userId && workspaceId) {
-      getInitialData(workspaceId);
+    if (role === ROLE.ADMIN && userId) {
+      getInitialData(userId);
     }
   }, []);
 
   return (
     <div className="header ">
-      <Navbar bg="dark" variant="dark">
+      <Navbar className="d-flex flex-wrap navbar navbar-dark bg-primary">
         <Container>
           <Navbar.Brand as={NavLink} to="/dashboard">
-            WorkSpace Management
+            WorkSpace
           </Navbar.Brand>
           <Nav className="ms-auto">
             <Nav.Link as={NavLink} to="/dashboard">
@@ -39,7 +39,7 @@ const Header = () => {
             )}
             {role === ROLE.ADMIN && (
               <Nav.Link as={NavLink} to={`workspace/${workspaceId}/employees`}>
-                Manage Employees
+                Employees
               </Nav.Link>
             )}
             {userId && (

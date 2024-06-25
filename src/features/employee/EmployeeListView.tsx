@@ -1,7 +1,23 @@
 import { memo, useEffect, useState } from "react";
-import { Button, Form, ListGroup, Pagination } from "react-bootstrap";
+import { Pagination } from "react-bootstrap";
 import { formatDate } from "../../common/utill/utill";
 import { IUser } from "../../model/userModel";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import {
+  Avatar,
+  Divider,
+  FormControlLabel,
+  FormGroup,
+  IconButton,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Switch,
+  Typography,
+} from "@mui/material";
 interface IProps {
   data: IUser[];
   onEdit: (user: IUser) => void;
@@ -24,6 +40,7 @@ const EmployeeListView: React.FC<IProps> = ({
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
+
     pageNumber <= totalPages && updatePageData(pageNumber, itemsPerPage);
   };
   const [pageData, setPageData] = useState<IUser[]>();
@@ -49,104 +66,172 @@ const EmployeeListView: React.FC<IProps> = ({
     setPageData(pagedItems);
   };
 
-  const [pageButtonLength, setPageButtonLength] = useState<any[]>([]);
+  const [pageButtonLength, setPageButtonLength] = useState<unknown[]>([]);
+  const [anchorEl, setAnchorEl] = useState<(HTMLElement | null)[]>(
+    new Array(actualDataLength).fill(null)
+  );
   useEffect(() => {
     if (totalPages) {
       setPageButtonLength(new Array(totalPages).fill(""));
+      // setAnchorEl(new Array(data.length).fill(null));
     }
   }, [totalPages]);
-
+  const handleClick = (
+    event: React.MouseEvent<HTMLElement>,
+    rowIndex: number
+  ) => {
+    const newAnchorEl = [...anchorEl];
+    newAnchorEl[rowIndex] = event.currentTarget;
+    setAnchorEl(newAnchorEl);
+  };
+  const handleClose = (rowIndex: number) => {
+    const newAnchorEl = [...anchorEl];
+    newAnchorEl[rowIndex] = null;
+    setAnchorEl(newAnchorEl);
+  };
   return (
     <>
-      {
-        <>
-          <h1>List View</h1>
+      <List
+        sx={{
+          width: "100%",
 
-          <ListGroup>
-            {pageData &&
-              pageData.map((item) => (
-                <ListGroup.Item key={item.id} className="my-4">
-                  <div className="">
-                    <div className="d-flex align-items-center mb-4 ">
-                      <>
-                        <img
-                          src={item.profilePicture}
-                          className="profile-img"
-                        ></img>
-                        <h5>{item.name}</h5>
-                      </>
+          bgcolor: "background.paper",
+          boxShadow: "0px 3px 5px rgba(0, 0, 0, 0.2)",
+          borderRadius: "8px",
+          p: 2,
+        }}
+      >
+        {pageData &&
+          pageData.map((item, index) => (
+            <>
+              <ListItem alignItems="flex-start" sx={{ height: "auto" }}>
+                <ListItemAvatar>
+                  <Avatar
+                    alt={item.name}
+                    src={item.profilePicture}
+                    sx={{ width: "60px", height: "60px", marginRight: "20px" }}
+                  />
+                </ListItemAvatar>
+                <ListItemText
+                  primary={
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Typography variant="h5" className="mb-4">
+                        {item.name}
+                      </Typography>
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <IconButton
+                          aria-label="more"
+                          aria-controls={`menu-${index}`}
+                          aria-haspopup="true"
+                          onClick={(event) => handleClick(event, index)}
+                        >
+                          <MoreVertIcon />
+                        </IconButton>
+                        <Menu
+                          id={`menu-${index}`}
+                          anchorEl={anchorEl[index]}
+                          keepMounted
+                          open={Boolean(anchorEl[index])}
+                          onClose={() => handleClose(index)}
+                        >
+                          <MenuItem
+                            onClick={() => {
+                              onEdit(item);
+                              handleClose(index);
+                            }}
+                          >
+                            Edit
+                          </MenuItem>
+                          <MenuItem
+                            onClick={() => {
+                              handleClose(index);
+                              item.id && onDelete(item.id);
+                            }}
+                          >
+                            Delete
+                          </MenuItem>
 
-                      <div className="ms-auto d-flex align-items-center">
-                        <Button
-                          onClick={() => item.id && onDelete(item.id)}
-                          className="me-2"
-                          variant="danger"
-                        >
-                          Delete
-                        </Button>
-                        <Button
-                          variant="success"
-                          onClick={() => onEdit(item)}
-                          className="mx-2"
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          onClick={() => onBypassLogin(item)}
-                          className="mx-2"
-                          variant="secondary"
-                        >
-                          Login
-                        </Button>
-                        <Form.Check
-                          type="switch"
-                          className="me-2"
-                          checked={item.status == "A" ? true : false}
-                          onChange={() =>
-                            item.id && onChangeStatus(item.id, item.status)
-                          }
-                          label={item.status == "A" ? "Activate" : "Deactivate"}
-                        />
+                          <MenuItem
+                            onClick={() => {
+                              handleClose(index);
+                              item.id && onBypassLogin(item);
+                            }}
+                          >
+                            Login
+                          </MenuItem>
+                        </Menu>
+                        <FormGroup>
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                className="me-2"
+                                onChange={() =>
+                                  item.id &&
+                                  onChangeStatus(item.id, item.status)
+                                }
+                                checked={item.status == "A" ? true : false}
+                                name="status"
+                              />
+                            }
+                            label={` ${
+                              item.status == "A" ? "Activated" : "Deactivated"
+                            }`}
+                          />
+                        </FormGroup>
                       </div>
                     </div>
-                    <p>Email: {item.email}</p>
+                  }
+                  secondary={
+                    <>
+                      <p>Email: {item.email}</p>
 
-                    <p>Mobile: {item.mobile}</p>
-                    <p>Department: {item.departmentName}</p>
-                    {item.dob && <p>DOB: {item.dob}</p>}
-                    <p>Joining Date: {formatDate(item.joiningDate)}</p>
-                  </div>
-                </ListGroup.Item>
-              ))}
-          </ListGroup>
-          <div>
-            <Pagination>
-              <Pagination.Prev
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              />
+                      <p>Mobile: {item.mobile}</p>
+                      <p>Department: {item.departmentName}</p>
+                      {item.dob && <p>DOB: {item.dob}</p>}
+                      <p>Joining Date: {formatDate(item.joiningDate)}</p>
+                    </>
+                  }
+                />
+              </ListItem>
+              {pageData.length - 1 !== index && (
+                <Divider variant="inset" component="li" />
+              )}
+            </>
+          ))}
+      </List>
+      <div
+        style={{ marginTop: "20px", display: "flex", justifyContent: "center" }}
+      >
+        <Pagination>
+          <Pagination.Prev
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          />
 
-              {pageButtonLength?.map((_, index) => {
-                return (
-                  <Pagination.Item
-                    active={currentPage === index + 1}
-                    onClick={() => handlePageChange(index + 1)}
-                  >
-                    {index + 1}
-                  </Pagination.Item>
-                );
-              })}
+          {pageButtonLength?.map((_, index) => {
+            return (
+              <Pagination.Item
+                active={currentPage === index + 1}
+                onClick={() => handlePageChange(index + 1)}
+              >
+                {index + 1}
+              </Pagination.Item>
+            );
+          })}
 
-              <Pagination.Next
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={
-                  currentPage === Math.ceil(actualDataLength / itemsPerPage)
-                }
-              />
-            </Pagination>
-          </div>
-        </>
-      }
+          <Pagination.Next
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={
+              currentPage === Math.ceil(actualDataLength / itemsPerPage)
+            }
+          />
+        </Pagination>
+      </div>
     </>
   );
 };

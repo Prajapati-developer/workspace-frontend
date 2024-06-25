@@ -5,13 +5,23 @@ import { useForm } from "react-hook-form";
 import { IUser } from "../model/userModel";
 import { useUpdateUserProfileMutation } from "../store/api/userApi";
 import { errorToast, successToast } from "../common/utill/tostUtill";
-import { Button, Col, Form, Row, Spinner } from "react-bootstrap";
-import ErrorText from "../common/components/ErrorText";
 import { ToastContainer } from "react-toastify";
 import { useLazyGetEmployeeByIdQuery } from "../store/api/employeeApi";
 import { getAuthDetails } from "../store/slice/AuthSlice";
 import { ROLE } from "../common/constants";
 import Loader from "../common/components/Loader";
+import {
+  CircularProgress,
+  Container,
+  Grid,
+  TextField,
+  Button,
+  CardMedia,
+  Card,
+  CardContent,
+  Typography,
+  FormHelperText,
+} from "@mui/material";
 
 const Profile: React.FC = () => {
   const initialData: IUser = {
@@ -38,16 +48,18 @@ const Profile: React.FC = () => {
     formState: { errors },
     reset,
   } = useForm<IUser>({ defaultValues: formData });
-
+  const [imageError, setImageError] = useState(false);
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-
+    setImageError(false);
     setFormData({ ...formData, [name]: value });
   };
   const { userId } = useSelector(getAuthDetails);
-  const [editEmployeeDetail, { isLoading: isUpdateQueryLoader }] =
-    useUpdateUserProfileMutation();
-  const [getUserProfileById, { data, isLoading, isError, error }] =
+  const [
+    editEmployeeDetail,
+    { isLoading: isUpdateQueryLoader, isError: isUpdateProfileError },
+  ] = useUpdateUserProfileMutation();
+  const [getUserProfileById, { data, isLoading, isError }] =
     useLazyGetEmployeeByIdQuery();
 
   useEffect(() => {
@@ -63,10 +75,15 @@ const Profile: React.FC = () => {
     }
   }, [data]);
 
+  useEffect(() => {
+    if (isUpdateProfileError) {
+      errorToast("Something went Wrong");
+    }
+  }, [isUpdateProfileError]);
   if (isError) {
-    console.error("error", error);
     return <h1>Something went Wrong!!!!</h1>;
   }
+
   if (isLoading || !data) {
     return <Loader />;
   }
@@ -91,264 +108,193 @@ const Profile: React.FC = () => {
           not editable as backend logic is not implemented
         </p>
       )}
-      <Row>
-        <Col className="col-2">
-          <img src={formData.profilePicture}></img>
-        </Col>
-        <Col>
-          {" "}
-          <Form
-            onSubmit={handleSubmit((data) => onSubmit(data))}
-            className="w-50"
-          >
-            <Form.Group controlId="formName" className="my-4">
-              <Form.Label>Name</Form.Label>
-              <Form.Control
-                type="text"
-                value={formData.name}
-                placeholder="Enter  Name"
-                {...register("name", {
-                  required: " Name is required",
-                })}
-                isInvalid={!!errors.name}
-                onChange={handleChange}
-              />
-              {errors.name && (
-                <Form.Control.Feedback type="invalid">
-                  <ErrorText>{errors.name.message}</ErrorText>
-                </Form.Control.Feedback>
-              )}
-            </Form.Group>
-
-            <Form.Group controlId="formPassword" className="my-4">
-              <Form.Label>Password</Form.Label>
-              <Form.Control
-                type="password"
-                placeholder="Password"
-                {...register("password", {
-                  required: "Password is required",
-                })}
-                disabled={
-                  formData.role == ROLE.ADMIN ||
-                  formData.role == ROLE.SUPER_ADMIN
+      <Container sx={{ paddingTop: 10, paddingBottom: 20 }}>
+        <Grid container spacing={2} justifyContent={"center"}>
+          <Grid item lg={3} xs={12}>
+            <Card sx={{ maxWidth: 350, marginRight: 5 }}>
+              <CardMedia
+                component="img"
+                alt={formData.name}
+                height="200"
+                image={
+                  formData.profilePicture
+                    ? !imageError
+                      ? formData.profilePicture
+                      : "../../../src/assets/icon-user-default.png"
+                    : "../../../src/assets/icon-user-default.png"
                 }
-                value={formData.password}
-                isInvalid={!!errors.password}
-                onChange={handleChange}
+                // src={formData.profilePicture}
+                onError={() => setImageError(true)}
+                // src={formData.profilePicture}
               />
+              <CardContent>
+                <Typography gutterBottom variant="subtitle2" component="div">
+                  Role:{" "}
+                  {formData.role === ROLE.SUPER_ADMIN
+                    ? "Super Admin"
+                    : formData.role === ROLE.ADMIN
+                    ? "Admin"
+                    : "Employee"}
+                </Typography>
+                <Typography gutterBottom variant="subtitle2" component="div">
+                  Status:
+                  {formData.status === "A" ? "Activated" : "Deactivated"}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item lg={9} md={12}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography
+                    variant="h4"
+                    align="center"
+                    style={{ margin: "20px 0 40px" }}
+                  >
+                    Manage Your Profile
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    label="Name"
+                    {...register("name", {
+                      required: " Name is required",
+                    })}
+                    error={!!errors.name}
+                    helperText={errors.name ? errors.name.message : ""}
+                    className="variant-1"
+                    value={formData.name}
+                    onChange={handleChange}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="password"
+                    label="Password"
+                    type="password"
+                    {...register("password", {
+                      required: "Password is required",
+                    })}
+                    error={!!errors.password}
+                    helperText={errors.password ? errors.password.message : ""}
+                    className="variant-1"
+                    disabled={
+                      formData.role == ROLE.ADMIN ||
+                      formData.role == ROLE.SUPER_ADMIN
+                    }
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="email"
+                    label="  Email"
+                    {...register("email", {
+                      required: "Email  is required",
+                    })}
+                    error={!!errors.email}
+                    helperText={errors.email ? errors.email.message : ""}
+                    className="variant-1"
+                    {...register("email", {
+                      required: "Email is required",
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: "Invalid email address",
+                      },
+                    })}
+                    value={formData.email}
+                    onChange={handleChange}
+                    disabled={
+                      formData.role == ROLE.ADMIN ||
+                      formData.role == ROLE.SUPER_ADMIN
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    label="Phone Number"
+                    {...register("mobile", {
+                      required: "Phone Number is required",
+                      pattern: {
+                        value: /^[0-9]+$/,
+                        message: "Please enter a valid 10-digit Phone number",
+                      },
+                    })}
+                    value={formData.mobile}
+                    error={!!errors.mobile}
+                    helperText={errors.mobile ? errors.mobile.message : ""}
+                    className="variant-1"
+                    onChange={handleChange}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    type="date"
+                    fullWidth
+                    {...register("dob", {
+                      required: "Date of Birth is required",
+                    })}
+                    error={!!errors.dob}
+                    helperText={errors.dob ? errors.dob.message : ""}
+                    className="variant-1"
+                    value={
+                      formData.dob
+                        ? new Date(formData.dob).toISOString().split("T")[0]
+                        : formData.dob
+                    }
+                    onChange={handleChange}
+                  />
+                  <FormHelperText>Date Of Birth </FormHelperText>
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    type="text"
+                    fullWidth
+                    label="Profile IMG Url"
+                    {...register("dob", {
+                      required: "Date of Birth is required",
+                    })}
+                    error={!!errors.profilePicture}
+                    helperText={
+                      errors.profilePicture ? errors.profilePicture.message : ""
+                    }
+                    className="variant-1"
+                    {...register("profilePicture", {
+                      required: "Profile Img URL is required",
+                      pattern: {
+                        value: /^(http|https):\/\/[^ "]+$/,
+                        message: "Enter a valid URL",
+                      },
+                    })}
+                    value={formData.profilePicture}
+                    onChange={handleChange}
+                  />
+                </Grid>
+                <Grid item xs={12} sx={{ textAlign: "center" }}>
+                  {isUpdateQueryLoader ? (
+                    <Button disabled>
+                      Updating.....
+                      <CircularProgress size={12} />
+                    </Button>
+                  ) : (
+                    <Button type="submit" variant="contained" color="primary">
+                      Update Profile
+                    </Button>
+                  )}
+                </Grid>
+              </Grid>
+            </form>
+          </Grid>
+        </Grid>
 
-              {errors.password && (
-                <Form.Control.Feedback type="invalid">
-                  <ErrorText>{errors.password.message}</ErrorText>
-                </Form.Control.Feedback>
-              )}
-            </Form.Group>
-            <Form.Group controlId="formEmail" className="my-4">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                placeholder="Email"
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Invalid email address",
-                  },
-                })}
-                value={formData.email}
-                isInvalid={!!errors.email}
-                onChange={handleChange}
-                disabled={
-                  formData.role == ROLE.ADMIN ||
-                  formData.role == ROLE.SUPER_ADMIN
-                }
-              />
-
-              {errors.email && (
-                <Form.Control.Feedback type="invalid">
-                  <ErrorText>{errors.email.message}</ErrorText>
-                </Form.Control.Feedback>
-              )}
-            </Form.Group>
-
-            <Form.Group controlId="formMobile" className="my-4">
-              <Form.Label>Mobile</Form.Label>
-              <Form.Control
-                type="tel"
-                placeholder="Mobile"
-                {...register("mobile", {
-                  required: "Mobile is required",
-                  pattern: {
-                    value: /^[0-9]+$/,
-                    message: "Please enter a valid 10-digit mobile number",
-                  },
-                })}
-                value={formData.mobile}
-                isInvalid={!!errors.mobile}
-                onChange={handleChange}
-              />
-
-              {errors.mobile && (
-                <Form.Control.Feedback type="invalid">
-                  <ErrorText>{errors.mobile.message}</ErrorText>
-                </Form.Control.Feedback>
-              )}
-            </Form.Group>
-            <Form.Group controlId="formDob" className="my-4">
-              <Form.Label>Date Of Birth</Form.Label>
-              <Form.Control
-                type="date"
-                placeholder="Date of Birth"
-                {...register("dob", {
-                  required: "Date of Birth is required",
-                })}
-                isInvalid={!!errors.dob}
-                value={
-                  formData.dob
-                    ? new Date(formData.dob).toISOString().split("T")[0]
-                    : formData.dob
-                }
-                onChange={handleChange}
-              />
-
-              {errors.dob && (
-                <Form.Control.Feedback type="invalid">
-                  <ErrorText>{errors.dob.message}</ErrorText>
-                </Form.Control.Feedback>
-              )}
-            </Form.Group>
-            <Form.Group controlId="formProfilePicture" className="my-4">
-              <Form.Label>Profile</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Profile IMG Url"
-                {...register("profilePicture", {
-                  required: "Profile Img URL is required",
-                  pattern: {
-                    value: /^(http|https):\/\/[^ "]+$/,
-                    message: "Enter a valid URL",
-                  },
-                })}
-                value={formData.profilePicture}
-                isInvalid={!!errors.profilePicture}
-                onChange={handleChange}
-              />
-
-              {errors.profilePicture && (
-                <Form.Control.Feedback type="invalid">
-                  <ErrorText>{errors.profilePicture.message}</ErrorText>
-                </Form.Control.Feedback>
-              )}
-            </Form.Group>
-            <Form.Group controlId="formRole" className="my-4">
-              <Form.Label>Role</Form.Label>
-              <Form.Control
-                type="text"
-                value={formData.role}
-                disabled
-                placeholder="Role"
-                // {...register("role", {
-                //   required: "Role  is required",
-                // })}
-                // isInvalid={!!errors.role}
-              />
-
-              {/* {errors.role && (
-                <Form.Control.Feedback type="invalid">
-                  <ErrorText>{errors.role.message}</ErrorText>
-                </Form.Control.Feedback>
-              )} */}
-            </Form.Group>
-            {formData.company && formData.role !== ROLE.SUPER_ADMIN && (
-              <Form.Group controlId="formWorkspace" className="my-4">
-                <Form.Label>Workspace Name</Form.Label>
-
-                <Form.Control
-                  type="text"
-                  value={formData.workspaceName}
-                  disabled
-                  placeholder="Workspace Name"
-                  {...register("workspaceName", {
-                    required: "Workspace Name  is required",
-                  })}
-                  isInvalid={!!errors.workspaceName}
-                />
-
-                {errors.workspaceName && (
-                  <Form.Control.Feedback type="invalid">
-                    <ErrorText>{errors.workspaceName.message}</ErrorText>
-                  </Form.Control.Feedback>
-                )}
-              </Form.Group>
-            )}
-            {formData.department && formData.role !== ROLE.SUPER_ADMIN && (
-              <Form.Group controlId="formDepartment" className="my-4">
-                <Form.Label>Department Name</Form.Label>
-
-                <Form.Control
-                  type="text"
-                  value={formData.departmentName}
-                  disabled
-                  placeholder="Department"
-                  {...register("departmentName", {
-                    required: "Department  is required",
-                  })}
-                  isInvalid={!!errors.departmentName}
-                />
-
-                {errors.departmentName && (
-                  <Form.Control.Feedback type="invalid">
-                    <ErrorText>{errors.departmentName.message}</ErrorText>
-                  </Form.Control.Feedback>
-                )}
-              </Form.Group>
-            )}
-
-            <Form.Group controlId="formRole" className="my-4">
-              <Form.Label>Status</Form.Label>
-              <Form.Control
-                type="text"
-                value={formData.status == "A" ? "Activate" : "Deactivate"}
-                disabled
-                placeholder="status"
-                // {...register("status", {
-                //   required: "Status  is required",
-                // })}
-                // isInvalid={!!errors.status}
-              />
-
-              {/* {errors.status && (
-                <Form.Control.Feedback type="invalid">
-                  <ErrorText>{errors.status.message}</ErrorText>
-                </Form.Control.Feedback>
-              )} */}
-            </Form.Group>
-
-            {isUpdateQueryLoader ? (
-              <Button className="d-block m-auto" variant="primary" disabled>
-                <Spinner
-                  as="span"
-                  animation="grow"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                />
-                {"Updating Profile"}
-              </Button>
-            ) : (
-              <Button
-                variant="primary"
-                className="d-block m-auto"
-                type="submit"
-              >
-                Update
-              </Button>
-            )}
-          </Form>
-        </Col>
-
-        <ToastContainer />
-      </Row>
+        <ToastContainer></ToastContainer>
+      </Container>
     </>
   );
 };

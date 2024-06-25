@@ -1,5 +1,6 @@
+import { Button, Grid, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Button, Col, Row } from "react-bootstrap";
+
 interface IProps {
   onDateRangeChange: (startDate: string, endDate: string) => void;
   startDate: string;
@@ -31,43 +32,46 @@ const CustomDateRangePicker: React.FC<IProps> = ({
     validateRange();
   }, [startDate, endDate]);
   return (
-    <div className="mt-4 custom-date-range-container">
-      <Row>
-        <Col className="col-6">
-          <div className="form-group">
-            <label>Start Date:</label>
-            <input
-              type="date"
-              className="form-control"
-              value={startDate}
-              onChange={handleStartDateChange}
-            />
-          </div>
-        </Col>
-        <Col className="col-6">
-          <div className="form-group">
-            <label>End Date:</label>
-            <input
-              type="date"
-              className="form-control"
-              value={endDate}
-              onChange={handleEndDateChange}
-            />
-          </div>
-        </Col>
+    <div className="custom-date-range-container1">
+      <Grid container spacing={2} alignItems={"center"}>
+        <Grid item lg={4} md={4}>
+          <TextField
+            fullWidth
+            placeholder="Start Date"
+            type="date"
+            className="form-control"
+            value={startDate}
+            onChange={handleStartDateChange}
+          />
+        </Grid>
+        <Grid item lg={4} md={4}>
+          <TextField
+            fullWidth
+            placeholder="End Date"
+            type="date"
+            className="form-control"
+            value={endDate}
+            onChange={handleEndDateChange}
+          />
+        </Grid>
+        <Grid item lg={4} md={4}>
+          <Button
+            disabled={!isValidRange}
+            className="ms-auto "
+            onClick={handleApplyClick}
+            variant="contained"
+          >
+            Filter By Dates
+          </Button>
+        </Grid>
         {!isValidRange && (
-          <p style={{ color: "red" }} className="text-center">
-            End date must be after start date.
-          </p>
+          <Grid item lg={12} md={12}>
+            <p style={{ color: "red" }} className="text-center">
+              End date must be after start date.
+            </p>
+          </Grid>
         )}
-        <Button
-          disabled={!isValidRange}
-          className="w-25 ms-auto me-4 mb-4"
-          onClick={handleApplyClick}
-        >
-          Search By Dates
-        </Button>
-      </Row>
+      </Grid>
     </div>
   );
 };

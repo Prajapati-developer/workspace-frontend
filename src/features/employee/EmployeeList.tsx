@@ -6,7 +6,6 @@ import {
 } from "../../store/api/employeeApi";
 import { memo, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, Col, Form, FormControl, Row } from "react-bootstrap";
 import { successToast } from "../../common/utill/tostUtill";
 import { setEmployeeData } from "../../store/slice/EmployeeSlice";
 import EmployeeListView from "./EmployeeListView";
@@ -19,7 +18,21 @@ import { ToastContainer } from "react-toastify";
 import { useSignInMutation } from "../../store/api/authApi";
 import { IUser } from "../../model/userModel";
 import Loader from "../../common/components/Loader";
-import { ROLE } from "../../common/constants";
+
+import {
+  Grid,
+  TextField,
+  Button,
+  Typography,
+  ToggleButtonGroup,
+  ToggleButton,
+} from "@mui/material";
+
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+import ViewModuleIcon from "@mui/icons-material/ViewModule";
 
 const EmployeeList: React.FC = () => {
   const { workspaceId } = useParams();
@@ -36,16 +49,17 @@ const EmployeeList: React.FC = () => {
 
   useEffect(() => {
     employeeData &&
-      setEmployees(
-        employeeData.employee.filter((val) => val.role !== ROLE.ADMIN)
-      );
+      // setEmployees(
+      //   employeeData.employee.filter((val) => val.role !== ROLE.ADMIN)
+      // );
+      setEmployees(employeeData.employee);
   }, [employeeData]);
 
   const [login] = useSignInMutation();
   const [updateStatus] = useUpdateEmployeeStatusMutation();
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [view, setView] = useState("list");
+
   const [searchTerm, setSearchTerm] = useState("");
   const [department, setDepartment] = useState("");
   useEffect(() => {
@@ -58,7 +72,15 @@ const EmployeeList: React.FC = () => {
       navigate("dashboard");
     }
   }, []);
+  const [openFilter, setOpenFilter] = useState(false);
+  const [alignment, setAlignment] = useState<string | null>("list");
 
+  const handleAlignment = (
+    _: React.MouseEvent<HTMLElement>,
+    newAlignment: string | null
+  ) => {
+    setAlignment(newAlignment);
+  };
   if (isLoading) {
     return <Loader />;
   }
@@ -170,8 +192,115 @@ const EmployeeList: React.FC = () => {
   };
 
   return (
-    <div className="mt-4">
-      <div className="d-flex align-items-center">
+    <div style={{ marginTop: "60px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          margin: "20px 0 40px",
+        }}
+      >
+        <Grid container spacing={2} alignItems={"center"}>
+          <Grid item lg={8} md={12}>
+            <Typography variant="h4">Manage Employees</Typography>
+          </Grid>
+          <Grid item lg={4} md={12}>
+            <div>
+              <Grid
+                container
+                spacing={2}
+                alignItems={"center"}
+                justifyContent={"center"}
+              >
+                <Grid item lg={6}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<AddCircleOutlineIcon />}
+                    onClick={() => navigate("/employee/add")}
+                  >
+                    Add Employee
+                  </Button>
+                </Grid>
+                <Grid item lg={4} md={12}>
+                  <Button
+                    variant="contained"
+                    // color="info"
+                    endIcon={<FilterAltIcon />}
+                    onClick={() => setOpenFilter((prev) => !prev)}
+                  >
+                    Filter
+                  </Button>
+                </Grid>
+                <Grid item lg={2} md={12}>
+                  <Button
+                    variant="contained"
+                    onClick={handleExportCsv}
+                    color="success"
+                  >
+                    <CloudDownloadIcon />
+                  </Button>
+                </Grid>
+              </Grid>
+            </div>
+          </Grid>
+        </Grid>
+      </div>
+      {openFilter && (
+        <div
+          style={{
+            boxShadow: "0px 3px 5px rgba(0, 0, 0, 0.2)",
+            borderRadius: "8px",
+            padding: 20,
+            margin: "20px 0px",
+          }}
+        >
+          <Grid
+            container
+            spacing={2}
+            alignItems={"center"}
+            justifyContent={"center"}
+          >
+            <Grid item lg={12}>
+              <TextField
+                fullWidth
+                type="text"
+                placeholder="Search"
+                className="mr-sm-2"
+                onChange={onSearch}
+                value={searchTerm}
+              />
+            </Grid>
+            <Grid item lg={4} md={12}>
+              <DepartmentSelectDropdown
+                name="department"
+                onSelect={filterByDepartment}
+                selectedOption={parseInt(department)}
+              />
+            </Grid>
+
+            <Grid item lg={6} md={12}>
+              <CustomDateRangePicker
+                onDateRangeChange={handleDateRangeChange}
+                startDate={startDate}
+                endDate={endDate}
+                handleStartDateChange={handleStartDateChange}
+                handleEndDateChange={handleEndDateChange}
+              ></CustomDateRangePicker>
+            </Grid>
+            <Grid item lg={2} md={12}>
+              <Button
+                className="mx-4"
+                variant="contained"
+                onClick={clearFilter}
+              >
+                Reset Filter
+              </Button>
+            </Grid>
+          </Grid>
+        </div>
+      )}
+      {/* <div className="d-flex align-items-center">
         <h1 className="mb-4">Manage Employee</h1>
         <Button
           className="mx-4"
@@ -225,10 +354,24 @@ const EmployeeList: React.FC = () => {
             Reset Filter
           </Button>
         </Col>
-      </Row>
-
+      </Row> */}
+      <div className="d-flex justify-content-center mb-4">
+        <ToggleButtonGroup
+          value={alignment}
+          exclusive
+          onChange={handleAlignment}
+          color="primary"
+        >
+          <ToggleButton value="list" aria-label="left aligned">
+            <FormatListBulletedIcon />
+          </ToggleButton>
+          <ToggleButton value="grid" aria-label="centered">
+            <ViewModuleIcon />
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </div>
       {employees && employees.length > 0 ? (
-        view == "list" ? (
+        alignment == "list" ? (
           <EmployeeListView
             onEdit={onEdit}
             onDelete={onDeleteEmployee}
