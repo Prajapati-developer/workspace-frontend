@@ -2,9 +2,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { getAuthDetails, signOut } from "../../store/slice/AuthSlice";
 import { ROLE } from "../constants";
-import { Container, Navbar, Nav } from "react-bootstrap";
+import { Navbar, Nav } from "react-bootstrap";
 import { useEffect } from "react";
 import { useLazyGetWorkspaceDataByIdQuery } from "../../store/api/workspaceApi";
+import { Container } from "@mui/material";
 
 const Header = () => {
   const { role, userId, workspaceId } = useSelector(getAuthDetails);
@@ -21,7 +22,7 @@ const Header = () => {
   return (
     <div className="header ">
       <Navbar className="d-flex flex-wrap navbar navbar-dark bg-primary">
-        <Container>
+        <Container className="d-flex flex-wrap">
           <Navbar.Brand as={NavLink} to="/dashboard">
             WorkSpace
           </Navbar.Brand>

@@ -175,9 +175,7 @@ const WorkspaceList = () => {
                         {row.name}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {row.email} {row.id}
-                    </TableCell>
+                    <TableCell>{row.email}</TableCell>
                     <TableCell>{row.mobile ? row.mobile : "-"}</TableCell>
                     <TableCell>{row.address}</TableCell>
                     <TableCell>
